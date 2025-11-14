@@ -1,0 +1,46 @@
+# Visual Studio / .NET / MAUI ignores
+
+# Build output
+[Bb]in/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
+Debug/
+Release/
+x64/
+x86/
+[Aa]ppPackages/
+[Tt]est[Rr]esult*/
+
+# MAUI/Blazor/WebView2 runtime caches (generated under bin)
+**/*.exe.WebView2/
+**/EBWebView/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+.packages/
+.nuget/
+
+# Logs
+*.log
+
+# Rider/VS Code
+.idea/
+.vscode/
+
+# Node (for Tailwind pipeline)
+node_modules/
+
+# Publish artifacts
+artifacts/
+wwwroot/dist/
