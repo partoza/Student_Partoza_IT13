@@ -1,0 +1,5 @@
+.form-group{margin-bottom:12px;display:flex;flex-direction:column;}
+.input{padding:8px;border:1px solid #ccc;border-radius:4px;}
+.btn{padding:8px16px;margin-right:8px;background:#512BD4;color:#fff;border:none;border-radius:4px;}
+.btn.secondary{background:#666;}
+.msg{margin:12px0;padding:8px;background:#e0e0e0;border-radius:4px;}

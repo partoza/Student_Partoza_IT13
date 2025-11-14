@@ -1,0 +1,17 @@
+{
+  "name": "student_portoza_it13",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "tailwind:build": "npx tailwindcss -c tailwind.config.js -i ./tailwind.css -o ./wwwroot/css/tailwind.css --minify",
+    "tailwind:watch": "npx tailwindcss -c tailwind.config.js -i ./tailwind.css -o ./wwwroot/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.9",
+    "@tailwindcss/typography": "^0.5.13",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.19"
+  }
+}

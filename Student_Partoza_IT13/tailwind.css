@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom layer examples */
+@layer components {
+  .btn-brand { @apply rounded-lg bg-brand text-white px-4 py-2 font-semibold shadow transition hover:bg-brand-dark; }
+}

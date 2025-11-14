@@ -1,0 +1,544 @@
+﻿@page "/home"
+@inject Student_Partoza_IT13.Services.AuthService Auth
+@inject Student_Partoza_IT13.Services.StudentService StudentSvc
+
+<div class="min-vh-100" style="background: #f8f9fa;">
+
+    <!-- Header -->
+    <div class="border-bottom bg-white shadow-sm">
+        <div class="container py-3">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Placeholder image box -->
+                     <img src="images/logo-icon.png" alt="University Logo" class="h-16 w-16" />
+
+
+                    <div>
+                        <h1 class="h3 fw-bold mb-1" style="color: #1a1a1a;">StudentHub</h1>
+                        <p class="text-muted small mb-0">Manage student information efficiently</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-block text-end">
+                        <div class="fw-semibold text-dark">@(Auth.EmployeeFullName ?? "-")</div>
+                        <div class="small text-muted">Admin Portal</div>
+                    </div>
+
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow"
+                         style="width:45px; height:45px; background:#800000 !important;">
+                        <span class="fw-bold text-white">@GetInitials(Auth.EmployeeFirstName ?? "", Auth.EmployeeLastName ?? "")</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container py-4">
+
+        <!-- Action Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <h2 class="h4 fw-bold text-dark mb-1">Students Directory</h2>
+                <p class="text-muted mb-0">@FilteredStudents.Count() students found</p>
+            </div>
+
+            <button class="btn d-flex align-items-center fw-semibold gap-2 px-4 py-2 text-white shadow-sm"
+                    style="background-color: #800000; border: none;"
+                    @onclick="ShowAddModal">
+                    <i class="bi bi-plus-lg"></i>
+                <span>Add New Student</span>
+            </button>
+        </div>
+
+        <!-- Filters Card -->
+        <div class="card border-1 mb-4 shadow-sm" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <h6 class="fw-semibold text-dark mb-3">Filter Records</h6>
+
+                <div class="row g-4">
+
+                    <!-- Search -->
+                    <div class="col-xl-4 col-lg-6">
+                        <label class="form-label fw-semibold text-dark small">Search Students</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text border-end-0 bg-transparent">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text"
+                                   class="form-control border-start-0 py-2 ps-0"
+                                   placeholder="Search by first or last name..."
+                                   @bind="searchTerm"
+                                   @bind:event="oninput"
+                                   style="border-radius:8px;">
+                        </div>
+                    </div>
+
+                    <!-- Course/Program Filter -->
+                    <div class="col-xl-3 col-lg-6">
+                        <label class="form-label fw-semibold text-dark small">Program</label>
+
+                        <div class="dropdown">
+                            <button class="form-select d-flex align-items-center justify-content-between py-2 text-start"
+                                    style="border-radius:8px; cursor:pointer;"
+                                    @onclick="() => showCourseDropdown = !showCourseDropdown">
+
+                                <span>@selectedCourse</span>
+                                <i class="bi bi-chevron-down text-muted"></i>
+                            </button>
+
+                            @if (showCourseDropdown)
+                            {
+                                <div class="dropdown-menu show d-block mt-1 border-0 shadow"
+                                     style="border-radius:8px; min-width:100%;">
+                                    <div class="p-2">
+
+                                        <div class="dropdown-item cursor-pointer py-2 @(selectedCourse == "All" ? "active" : "")"
+                                             @onclick='() => SelectCourse("All")'>
+                                            All Programs
+                                        </div>
+
+                                        @foreach (var c in Programs)
+                                        {
+                                            <div class="dropdown-item cursor-pointer py-2 @(selectedCourse == c ? "active" : "")"
+                                                 @onclick="() => SelectCourse(c)">
+                                                @c
+                                            </div>
+                                        }
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Year Filter -->
+                    <div class="col-xl-3 col-lg-6">
+                        <label class="form-label fw-semibold text-dark small">Year Level</label>
+
+                        <div class="dropdown">
+                            <button class="form-select d-flex align-items-center justify-content-between py-2 text-start"
+                                    style="border-radius:8px; cursor:pointer;"
+                                    @onclick="() => showYearDropdown = !showYearDropdown">
+
+                                <span>@selectedYear</span>
+                                <i class="bi bi-chevron-down text-muted"></i>
+                            </button>
+
+                            @if (showYearDropdown)
+                            {
+                                <div class="dropdown-menu show d-block mt-1 border-0 shadow"
+                                     style="border-radius:8px; min-width:100%;">
+                                    <div class="p-2">
+
+                                        <div class="dropdown-item cursor-pointer py-2 @(selectedYear == "All" ? "active" : "")"
+                                             @onclick='() => SelectYear("All")'>
+                                            All Years
+                                        </div>
+
+                                        @foreach (var y in Years)
+                                        {
+                                            <div class="dropdown-item cursor-pointer py-2 @(selectedYear == y ? "active" : "")"
+                                                 @onclick="() => SelectYear(y)">
+                                                @y
+                                            </div>
+                                        }
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <div class="col-xl-2 col-lg-6 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100 fw-semibold py-2"
+                                @onclick="ClearFilters"
+                                style="border-radius:8px;">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Reset
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="card border-1 shadow-sm" style="border-radius:12px; overflow:hidden;">
+            <div class="table-responsive">
+
+                <table class="table-hover mb-0 table align-middle">
+
+                    <thead style="background-color:#800000;">
+                        <tr>
+                            <th class="small fw-semibold py-3 ps-4 text-black">STUDENT NAME</th>
+                            <th class="small fw-semibold py-3 text-black">PROGRAM</th>
+                            <th class="small fw-semibold py-3 text-black">YEAR LEVEL</th>
+                            <th class="small fw-semibold py-3 text-black">AGE</th>
+                            <th class="small fw-semibold py-3 text-center text-black" style="width:120px;">ACTIONS</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (!FilteredStudents.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="py-5 text-center">
+                                    <div class="py-4">
+                                        <i class="bi bi-search display-4 text-muted mb-3"></i>
+                                        <h5 class="text-muted">No students found</h5>
+                                        <p class="text-muted mb-0">Try adjusting your search or filters</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var s in FilteredStudents)
+                            {
+                                <tr class="cursor-pointer">
+
+                                    <td class="py-3 ps-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px; background-color: #f8f9fa;">
+                                                <span class="fw-semibold text-muted small">@GetInitials(s.StudName, s.StudLastName)</span>
+                                            </div>
+
+                                            <div>
+                                                <div class="fw-semibold text-dark">@s.StudName @s.StudLastName</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark fw-normal px-3 py-2">@s.StudProgram</span>
+                                    </td>
+
+                                    <td class="py-3">
+                                        <span class="badge fw-normal year-badge px-3 py-2">@s.StudYearLevel</span>
+                                    </td>
+
+                                    <td class="py-3">
+                                        <span>@CalcAge(s.StudBirthdate)</span>
+                                    </td>
+
+                                    <td class="py-3 text-center">
+
+                                        <!-- Edit Button -->
+                                        <button class="btn btn-sm btn-light rounded-circle me-1" title="Edit Record" @onclick="() => EditStudent(s)" style="width:35px; height:35px; border:1px solid #dee2e6;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+</svg>
+
+                                        </button>
+
+                                        <!-- Archive/Unarchive Button -->
+                                        <button class="btn btn-sm btn-light rounded-circle" title="Archive Record" @onclick="() => ConfirmArchive(s)" style="width:35px; height:35px; border:1px solid #dee2e6;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+</svg>
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Add/Edit Modal -->
+    @if (showAddModal)
+    {
+        <div class="modal-backdrop-custom" @onclick="HideAddModal"></div>
+
+        <div class="modal-panel card border-0 shadow" style="border-radius:16px; max-width:520px;">
+            <div class="card-header d-flex justify-content-between align-items-center border-0 bg-white pb-3 pt-4">
+                <h2 class="h5 fw-bold mb-0" style="color:#1a1a1a;">
+                    @(isEditing ? "Edit Student" : "Add New Student")
+                </h2>
+
+                <button class="btn btn-sm p-1" @onclick="CancelEdit" style="color:#800000;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="card-body pb-4">
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-2">First Name</label>
+                    <input class="form-control py-3"
+                           @bind="newStudFirstName"
+                           placeholder="Enter first name"
+                           style="border-radius:8px; border:1px solid #e0e0e0;" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-2">Last Name</label>
+                    <input class="form-control py-3"
+                           @bind="newStudLastName"
+                           placeholder="Enter last name"
+                           style="border-radius:8px; border:1px solid #e0e0e0;" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-2">Birthdate</label>
+                    <InputDate @bind-Value="newStudBirthdate" class="form-control py-3" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-2">Program</label>
+                    <select class="form-select py-3"
+                            @bind="newStudProgram"
+                            style="border-radius:8px; border:1px solid #e0e0e0;">
+                        @foreach (var c in Programs)
+                        {
+                            <option>@c</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-2">Year Level</label>
+                    <select class="form-select py-3"
+                            @bind="newStudYearLevel"
+                            style="border-radius:8px; border:1px solid #e0e0e0;">
+                        @foreach (var y in Years)
+                        {
+                            <option>@y</option>
+                        }
+                    </select>
+                </div>
+
+                @if (isEditing)
+                {
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-2">Status</label>
+                        <select class="form-select py-3"
+                                @bind="newStudStatus"
+                                style="border-radius:8px; border:1px solid #e0e0e0;">
+                            <option>active</option>
+                            <option>inactive</option>
+                        </select>
+                    </div>
+                }
+
+                <div class="d-flex gap-3">
+                    <button class="btn fw-semibold flex-fill py-3 text-white"
+                            style="background-color:#800000; border:none; border-radius:8px;"
+                            @onclick="SaveStudent">
+                        <i class="bi @(isEditing ? "bi-check-lg" : "bi-plus-circle") me-2"></i>
+                        @(isEditing ? "Update Student" : "Add Student")
+                    </button>
+
+                    @if (isEditing)
+                    {
+                        <button class="btn btn-outline-secondary fw-semibold px-4 py-3"
+                                style="border-radius:8px;"
+                                @onclick="CancelEdit">
+                            Cancel
+                        </button>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- Confirm Archive Modal -->
+    @if (showConfirmArchiveModal)
+    {
+        <div class="modal-backdrop-custom" @onclick="CloseConfirmArchive"></div>
+        <div class="modal-panel card border-0 shadow" style="border-radius:16px; max-width:400px;">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Confirm Action</h6>
+                <p>Are you sure you want to archive/unarchive this student?</p>
+                <div class="d-flex justify-content-end mt-3 gap-2">
+                    <button class="btn btn-outline-secondary" @onclick="CloseConfirmArchive">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ApplyArchive">Confirm</button>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+
+@code {
+    // Align to DB schema
+    public record StudentVM(
+        int StudID,
+        string StudName,
+        string StudLastName,
+        DateTime StudBirthdate,
+        string StudYearLevel,
+        string StudProgram,
+        int CreatedByEmployee,
+        string? Status
+    );
+
+    private List<StudentVM> students = new();
+
+    private string searchTerm = string.Empty;
+    private string selectedCourse = "All";
+    private string selectedYear = "All";
+    private bool showCourseDropdown = false;
+    private bool showYearDropdown = false;
+
+    private bool showAddModal = false;
+    private bool isEditing = false;
+    private StudentVM? currentStudent = null;
+
+    // New student fields
+    private string newStudFirstName = string.Empty;
+    private string newStudLastName = string.Empty;
+    private DateOnly? newStudBirthdate = null;
+    private string newStudProgram = "BSIT";
+    private string newStudYearLevel = "1st Year";
+    private string newStudStatus = "active"; // used on edit
+
+    private IEnumerable<string> Programs => new[] { "BSIT", "BSCS", "BSIS" };
+    private IEnumerable<string> Years => new[] { "1st Year", "2nd Year", "3rd Year", "4th Year" };
+
+    private IEnumerable<StudentVM> FilteredStudents =>
+        students.Where(s =>
+            (string.IsNullOrWhiteSpace(searchTerm) ||
+             ($"{s.StudName} {s.StudLastName}").Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            && (selectedCourse == "All" || s.StudProgram == selectedCourse)
+            && (selectedYear == "All" || s.StudYearLevel == selectedYear)
+        );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActiveStudentsAsync();
+    }
+
+    private async Task LoadActiveStudentsAsync()
+    {
+        try
+        {
+            var data = await StudentSvc.GetStudentsAsync("active");
+            students = data.Select(d => new StudentVM(d.StudID, d.StudName, d.StudLastName, d.StudBirthdate, d.StudYearLevel, d.StudProgram, d.CreatedByEmployee, d.Status)).ToList();
+        }
+        catch
+        {
+            // swallow to prevent UI crash
+        }
+    }
+
+    private void ShowAddModal() { ResetForm(); showAddModal = true; }
+    private void HideAddModal() => showAddModal = false;
+
+    private void SelectCourse(string course) { selectedCourse = course; showCourseDropdown = false; }
+    private void SelectYear(string year) { selectedYear = year; showYearDropdown = false; }
+    private void ClearFilters() { searchTerm = string.Empty; selectedCourse = "All"; selectedYear = "All"; }
+
+    private void EditStudent(StudentVM s)
+    {
+        isEditing = true;
+        currentStudent = s;
+        newStudFirstName = s.StudName;
+        newStudLastName = s.StudLastName;
+        newStudBirthdate = new DateOnly(s.StudBirthdate.Year, s.StudBirthdate.Month, s.StudBirthdate.Day);
+        newStudProgram = s.StudProgram;
+        newStudYearLevel = s.StudYearLevel;
+        newStudStatus = s.Status ?? "active";
+        showAddModal = true;
+    }
+
+    private bool showConfirmArchiveModal = false;
+    private StudentVM? pendingArchiveStudent;
+    private void ConfirmArchive(StudentVM s) { pendingArchiveStudent = s; showConfirmArchiveModal = true; }
+    private void CloseConfirmArchive() { pendingArchiveStudent = null; showConfirmArchiveModal = false; }
+    private async Task ApplyArchive()
+    {
+        if (pendingArchiveStudent is null) { CloseConfirmArchive(); return; }
+        try
+        {
+            // Toggle status: if active -> inactive, else -> active
+            var newStatus = string.Equals(pendingArchiveStudent.Status, "active", StringComparison.OrdinalIgnoreCase) ? "inactive" : "active";
+            await StudentSvc.SetStatusAsync(pendingArchiveStudent.StudID, newStatus);
+            await LoadActiveStudentsAsync();
+        }
+        catch { }
+        finally { CloseConfirmArchive(); }
+    }
+
+    private async Task SaveStudent()
+    {
+        // Basic validation
+        if (string.IsNullOrWhiteSpace(newStudFirstName) || string.IsNullOrWhiteSpace(newStudLastName) || newStudBirthdate is null)
+            return;
+
+        try
+        {
+            if (isEditing && currentStudent is not null)
+            {
+                var bd = new DateTime(newStudBirthdate!.Value.Year, newStudBirthdate.Value.Month, newStudBirthdate.Value.Day);
+                await StudentSvc.UpdateStudentAsync(currentStudent.StudID, newStudFirstName.Trim(), newStudLastName.Trim(), bd, newStudYearLevel, newStudProgram, newStudStatus);
+            }
+            else
+            {
+                var empId = Auth.EmployeeId ??0;
+                if (empId ==0) return; // must have logged-in employee
+                var bdAdd = new DateTime(newStudBirthdate!.Value.Year, newStudBirthdate.Value.Month, newStudBirthdate.Value.Day);
+                await StudentSvc.AddStudentAsync(newStudFirstName.Trim(), newStudLastName.Trim(), bdAdd, newStudYearLevel, newStudProgram, empId, "active");
+            }
+
+            await LoadActiveStudentsAsync();
+            ResetForm();
+            HideAddModal();
+        }
+        catch
+        {
+            // prevent crash
+        }
+    }
+
+    private void CancelEdit()
+    {
+        ResetForm();
+        HideAddModal();
+    }
+
+    private void ResetForm()
+    {
+        newStudFirstName = string.Empty;
+        newStudLastName = string.Empty;
+        newStudBirthdate = null;
+        newStudProgram = "BSIT";
+        newStudYearLevel = "1st Year";
+        newStudStatus = "active";
+        isEditing = false;
+        currentStudent = null;
+    }
+
+    private static string GetInitials(string first, string last)
+    {
+        var f = string.IsNullOrWhiteSpace(first) ? string.Empty : first.Trim()[0].ToString();
+        var l = string.IsNullOrWhiteSpace(last) ? string.Empty : last.Trim()[0].ToString();
+        return (f + l).ToUpperInvariant();
+    }
+
+    private static int CalcAge(DateTime birthdate)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - birthdate.Year;
+        if (birthdate.Date > today.AddYears(-age)) age--;
+        return Math.Max(age,0);
+    }
+}

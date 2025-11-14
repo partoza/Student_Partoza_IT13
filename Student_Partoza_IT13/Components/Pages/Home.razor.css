@@ -1,0 +1,25 @@
+/* Styles for Home.razor moved out of Razor to prevent @keyframes parsing issues */
+.modal-backdrop-custom {
+ position: fixed;
+ inset:0;
+ background: rgba(0,0,0,0.5);
+ backdrop-filter: blur(4px);
+ z-index:1040;
+}
+
+.modal-panel {
+ position: fixed;
+ top:50%;
+ left:50%;
+ transform: translate(-50%, -50%);
+ width:100%;
+ z-index:1050;
+}
+
+.cursor-pointer { cursor: pointer; }
+.dropdown-item.active { background-color: #800000 !important; color: white !important; }
+.dropdown-item:hover:not(.active) { background-color: #f8f9fa !important; }
+.table-hover tbody tr:hover { background-color: #f8f9fa !important; transform: translateY(-1px); box-shadow:02px8px rgba(0,0,0,0.1); }
+.form-control:focus, .form-select:focus { border-color: #800000 !important; box-shadow:000.2rem rgba(128,0,0,0.15) !important; }
+.badge { font-size:0.75rem; border-radius:6px; }
+.year-badge { background-color: #fffbe6; color: #FFD700; border:1px solid #FFD700; }

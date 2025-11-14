@@ -1,0 +1,136 @@
+﻿@page "/"
+@page "/login"
+@layout EmptyLayout
+@inject NavigationManager Nav
+@inject Student_Partoza_IT13.Services.AuthService Auth
+
+<div class="flex min-h-screen items-center justify-center bg-cover bg-fixed bg-center transition-all duration-500"
+     style="background-image: linear-gradient(rgba(128,0,0,0.7), rgba(128,0,0,0.7)), url('images/bg-background.jpg');">
+
+    <div class="relative mx-4 w-full max-w-md transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 hover:shadow-3xl">
+        <!-- Loading Spinner (Hidden by default) -->
+        <div id="loadingSpinner" class="absolute inset-0 z-10 flex hidden items-center justify-center rounded-2xl bg-white bg-opacity-90">
+            <div class="flex flex-col items-center">
+                <div class="mb-2 h-12 w-12 animate-spin rounded-full border-4 border-[#800000] border-t-transparent"></div>
+                <p class="font-medium text-[#800000]">Processing...</p>
+            </div>
+        </div>
+
+        <!-- Logo Header -->
+        <div class="mb-6 text-center">
+            <div class="mb-4 flex items-center justify-center">
+                <img src="images/logo-icon.png" alt="University Logo" class="h-16 w-16" />
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Student Information </h1>
+            <p class="mt-2 text-sm text-gray-600">Access and manage student records</p>
+        </div>
+
+        <!-- Login Form -->
+        <div>
+            <h3 class="mb-6 text-center text-xl font-semibold text-gray-800">Welcome Back, Admin</h3>
+
+            @if (message != null)
+            {
+                <div class="mb-4 flex animate-pulse items-start rounded-lg border border-red-400 bg-red-50 px-4 py-3 text-red-700">
+                    <svg class="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-2 5a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1h-9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>@message</span>
+                </div>
+            }
+
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <div class="relative">
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Username</label>
+                        <div class="relative">
+                            <InputText class="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all duration-300 focus:border-transparent focus:ring-2 focus:ring-[#800000]"
+                                       @bind-Value="loginModel.Username" />
+                            
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Password</label>
+                        <div class="relative">
+                            <InputText class="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all duration-300 focus:border-transparent focus:ring-2 focus:ring-[#800000]"
+                                       type="password" @bind-Value="loginModel.Password" />
+                        </div>
+                    </div>
+                    <button class="flex w-full transform items-center justify-center rounded-lg bg-[#800000] px-4 py-3 font-semibold text-white shadow-md transition duration-300 hover:-translate-y-0.5 hover:bg-[#660000] hover:shadow-lg active:translate-y-0"
+                            type="submit" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span>Logging in...</span>
+                        }
+                        else
+                        {
+                            <span>Login to Account</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? message;
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        // Clear any existing messages when page loads
+        message = null;
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(200); // small UX delay
+            var ok = await Auth.VerifyCredentialsAsync(loginModel.Username, loginModel.Password);
+            if (ok)
+            {
+                // Load employee info (id + name)
+                var info = await Auth.GetEmployeeInfoAsync(loginModel.Username);
+                if (info.EmpId.HasValue)
+                {
+                    Auth.SignInWithInfo(loginModel.Username, info.EmpId.Value, info.FirstName, info.LastName);
+                    Nav.NavigateTo("/home", true);
+                }
+                else
+                {
+                    message = "Unable to fetch employee information.";
+                }
+            }
+            else
+            {
+                message = "Invalid username or password. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Login failed: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
+        public string Password { get; set; } = string.Empty;
+    }
+}
